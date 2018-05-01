@@ -1,5 +1,9 @@
+#Clear All
+rm(list=ls())
 library("klaR")
 library("data.table")
+library(glmnet)
+
 setwd("G:\\R\\AlgLearningTheory\\Project\\UCI HAR Dataset\\UCI HAR Dataset")
 features <- read.table("features.txt")
 act_labels <- read.table("activity_labels.txt")
@@ -26,7 +30,7 @@ features <- data.frame(lapply(features, neatify))
 
 
 colnames(train_features) <- c(t(features)[2,])
-colnames(train_features) <- c(t(features)[2,])
+colnames(test_features) <- c(t(features)[2,])
 
 
 colnames(train_labels) <- c("act")
@@ -47,61 +51,22 @@ test_dataset <- merge(test_dataset,act_labels )
 train_dataset <- subset(train_dataset, select = -c(act))
 test_dataset <- subset(test_dataset, select = -c(act))
 
-form <- paste0("Activity ~ ", colnames(train_dataset)[1])
-for (i in 2:563)
-  form<-paste0(form," + ", colnames(train_dataset)[i])
 
 #BayesModel1 <- NaiveBayes(formula(form), data=train_dataset)
-BayesModel1 <- NaiveBayes(formula("Activity ~ ."), data=train_dataset)
+BayesModel1 <- NaiveBayes(formula =Activity ~ ., data=train_dataset)
 print(summary(BayesModel1))
 
 pred1 <- predict(BayesModel1, test_dataset)
 
-#train_matrix <- matrix(unlist(train_dataset), ncol = 562, byrow = TRUE)
-# model <- naiveBayes(class ~ ., data = train_matrix)
-# summary(model)
-
-# 
-# #New attempt
-# train_matrix <- matrix(unlist(train_dataset), ncol = 562, byrow = TRUE)
-# model <- naiveBayes(formula("Activity ~ ."), data = train_matrix)
-# preds <- predict(model, newdata = test_matrix)
-# print(summary(model))
-# print(summary(BayesModel1))
-
-#Algorithm does not converge with default parameters
-#logitModel1 <- glm(formula("Activity ~ ."), family=binomial, data=train_dataset)
-
-logitModel1 <- glm(formula("Activity ~ ."), family=binomial, data=train_dataset, control = list(maxit = 50))
-
-#Run PCA
-pc <- prcomp(train_features, center=TRUE, scale=TRUE)
-pc.var <- pc$sdev^2
-pc.pvar <- pc.var/sum(pc.var)
-plot(cumsum(pc.pvar),xlab="Principal component", ylab="Cumulative Proportion of variance explained",type='b',main="Principal Components proportions",col="blue")
-abline(h=0.95)
-abline(v=100)
-
-#Forward selection
-install.packages("leaps")
-library(leaps)
-#Skip this
-
-
 #
 x <- model.matrix(Activity~., train_dataset)[,-1]
 y = train_dataset$Activity
-install.packages("glmnet")
-library(glmnet)
 
-install.packages("ridge")
-library(ridge)
-logisticRidge(formula("Activity ~ ."), train_dataset, lambda="automatic", nPCs=NULL, scaling="scale", 
-              type="response", all.coef =FALSE)
+
 glm_model <- glm(formula = Activity ~ ., family = binomial, data = train_dataset,control = list(maxit = 100))
 
 #pred
-predictions <- predict.glm(glm_model,test_dataset[,-Activity],type= "response")
+predictions <- predict.glm(glm_model,subset(test_dataset, select = -c(Activity)),type= "response")
 
 cv.out <- cv.glmnet(x,y,alpha=1,family="multinomial",type.measure = "mse" )
 
