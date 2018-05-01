@@ -1,10 +1,16 @@
-#Clear All
+#Clear All data before starting
 rm(list=ls())
+
+#Import required libraries
 library("klaR")
 library("data.table")
-library(glmnet)
+library("glmnet")
+library("neuralnet")
 
+#Set working directory. NEEDS TO BE MODIFIED
 setwd("G:\\R\\AlgLearningTheory\\Project\\UCI HAR Dataset\\UCI HAR Dataset")
+
+
 features <- read.table("features.txt")
 act_labels <- read.table("activity_labels.txt")
 train_features <- read.table("train\\X_train.txt")
@@ -12,8 +18,9 @@ train_labels <- read.table("train\\y_train.txt")
 test_features <- read.table("test\\X_test.txt")
 test_labels <- read.table("test\\y_test.txt")
 
-subject_train <- read.table("train//subject_train.txt")
-subject_test <- read.table("test//subject_test.txt")
+#Remove bad characters from column names, such as "(",")" and "-"
+colnames(nn_train_data) = make.names(colnames(nn_train_data), unique = TRUE, allow_ = TRUE)
+colnames(nn_test_data) = make.names(colnames(nn_test_data), unique = TRUE, allow_ = TRUE)
 
 
 #train_features <- rbind(t(features)[2,], train_features)
@@ -87,7 +94,18 @@ table(max_Levels, test_dataset$Activity)
 mean(as.character(max_Levels) == as.character(test_dataset$Activity))
 
 
+layers=c(30,22)
+nn_train_data <- train_dataset
+nn_test_data <- test_dataset
 
+
+form <- paste0("Activity ~ ", colnames(nn_train_data)[1])
+for (i in 2:561)
+   form<-paste0(form," + ", colnames(nn_train_data)[i])
+
+
+
+nnModel1<-neuralnet(formula = formula(form),data=nn_train_data, hidden=layers,linear.output=T, err.fct="sse")
 
 # 
 # #Attempt logistic with nnnet package
