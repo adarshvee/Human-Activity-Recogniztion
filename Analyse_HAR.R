@@ -53,37 +53,83 @@ train_dataset <- subset(train_dataset, select = -c(act))
 test_dataset <- subset(test_dataset, select = -c(act))
 
 
-#BayesModel1 <- NaiveBayes(formula(form), data=train_dataset)
-BayesModel1 <- NaiveBayes(formula =Activity ~ ., data=train_dataset)
-print(summary(BayesModel1))
-
-pred1 <- predict(BayesModel1, test_dataset)
+# #BayesModel1 <- NaiveBayes(formula(form), data=train_dataset)
+# BayesModel1 <- NaiveBayes(formula =Activity ~ ., data=train_dataset)
+# print(summary(BayesModel1))
+# 
+# pred1 <- predict(BayesModel1, test_dataset)
 
 #
 x <- model.matrix(Activity~., train_dataset)[,-1]
 y = train_dataset$Activity
 
+x_test <- model.matrix(Activity~., test_dataset)[,-1]
 
-glm_model <- glm(formula = Activity ~ ., family = binomial, data = train_dataset,control = list(maxit = 100))
+#Try out glmnet
+#https://web.stanford.edu/~hastie/glmnet/glmnet_alpha.html#log
+fit = glmnet(x, y, family = "multinomial")
+summary(fit)
+pred_class <- predict(fit, newx = x_test, s = 0,        type="class" )
+pred_score <- predict(fit, newx = x_test, s = NULL,        type="response" )
 
-#pred
-#predictions <- predict.glm(glm_model,subset(test_dataset, select = -c(Activity)),type= "response")
-predictions <- predict.glm(glm_model,test_dataset,type= "response")
 
-cv.out <- cv.glmnet(x,y,alpha=1,family="multinomial",type.measure = "mse" )
+table(pred_class, test_dataset$Activity)
+mean(as.character(pred_class) == as.character(test_dataset$Activity))
 
-#The one that ran
+
 cv.out <- cv.glmnet(x,y,alpha=1,family="multinomial",type.measure = "mse" )
 plot(cv.out)
-lambda_min <- cv.out$lambda.min
 lambda_1se <- cv.out$lambda.1se
 coef(cv.out,s=lambda_1se)
-#Done, test now
-
-x_test <- model.matrix(Activity~.,test_dataset)
-#Lasso probabilities
-new.x<-model.matrix(~.,data=test_dataset)
 lasso_prob <- predict(cv.out,newx = x_test,s=lambda_1se,type="response")
-dim(x_test)
-dim(x)
-summary(cv.out)
+max_Levels <- colnames(lasso_prob)[apply(lasso_prob,1,which.max)]
+table(max_Levels, test_dataset$Activity)
+mean(as.character(max_Levels) == as.character(test_dataset$Activity))
+
+
+
+
+# 
+# #Attempt logistic with nnnet package
+# library(nnet)
+# multinomModel <- multinom(Activity ~ ., data=train_dataset, MaxNWts = 6000) # multinom Model
+# predicted_scores <- predict (multinomModel, test_dataset, "probs")
+# predicted_class <- predict (multinomModel, test_dataset)
+# table(predicted_class, test_dataset$Activity)
+# mean(as.character(predicted_class) != as.character(test_dataset$Activity))
+# mean(as.character(predicted_class) == as.character(test_dataset$Activity))
+# 
+# glm_model <- glm(formula = Activity ~ ., family = "multinomial", data = train_dataset,control = list(maxit = 100))
+# 
+# #pred
+# #predictions <- predict.glm(glm_model,subset(test_dataset, select = -c(Activity)),type= "response")
+# predictions <- predict.glm(glm_model,test_dataset,type= "response")
+# summary(predictions)
+# typeof(predictions)
+# print(table(test_dataset$Activity, predict > 0.5))
+# 
+# 
+# cv.out <- cv.glmnet(x,y,alpha=1,family="multinomial",type.measure = "mse" )
+# 
+# #The one that ran
+# cv.out <- cv.glmnet(x,y,alpha=1,family="multinomial",type.measure = "mse" )
+# plot(cv.out)
+# lambda_min <- cv.out$lambda.min
+# lambda_1se <- cv.out$lambda.1se
+# coef(cv.out,s=lambda_1se)
+# #Done, test now
+# 
+# x_test <- model.matrix(Activity~.,test_dataset)
+# #Lasso probabilities
+# new.x<-model.matrix(~.,data=test_dataset)
+# lasso_prob <- predict(cv.out,newx = x_test,s=lambda_1se,type="response")
+# dim(x_test)
+# dim(x)
+# summary(cv.out)
+# 
+# 
+# library(caret)
+# model <- train(Activity~., train_dataset, method='glmnet', tuneGrid=expand.grid(.alpha=0:1,    .lambda=0:30/10))
+# 
+# plot(model)
+# coef(model$finalModel, s=model$bestTune$.lambda)
