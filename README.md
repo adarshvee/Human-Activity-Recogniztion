@@ -1,0 +1,3 @@
+Our team's attempt at using the Human Activity Recognition dataset by UCI (available here : https://archive.ics.uci.edu/ml/datasets/human+activity+recognition+using+smartphones#) for classification.
+
+We are attempting to use Naive Bayes, Logistic Regression (with Ridge and Lasso), and Neural Nets. This is the R code repositary. We are trying to replicate this in a seperate Python repo (will link to that soon).
