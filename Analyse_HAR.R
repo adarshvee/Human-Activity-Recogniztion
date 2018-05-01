@@ -133,3 +133,34 @@ mean(as.character(max_Levels) == as.character(test_dataset$Activity))
 # 
 # plot(model)
 # coef(model$finalModel, s=model$bestTune$.lambda)
+
+#### Naive Bayes code: ########################################################
+rm(list=ls())
+#library("klaR")
+library("data.table")
+library(glmnet)
+library(naivebayes)
+
+act_labels <- read.table("activity_labels.txt")
+train_features <- read.table("X_train.txt")
+train_labels <- read.table("y_train.txt")
+test_features <- read.table("X_test.txt")
+test_labels <- read.table("y_test.txt")
+
+colnames(train_labels) <- c("act")
+colnames(test_labels) <- c("act")
+colnames(act_labels) <- c("act", "Activity")
+train_dataset <- cbind(train_features,train_labels )
+test_dataset <- cbind(test_features,test_labels )
+
+train_dataset <- merge(train_dataset, act_labels )
+test_dataset <- merge(test_dataset,act_labels )
+train_dataset$act <- NULL
+test_dataset$act <- NULL
+
+NBModel <- naive_bayes(Activity ~ ., data=train_dataset)
+test <- test_dataset
+test$Activity <- NULL
+pred <- predict(NBModel, test)
+mean(as.character(pred) == as.character(test_dataset$Activity))
+##############################################################################
