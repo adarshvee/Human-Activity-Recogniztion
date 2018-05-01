@@ -24,6 +24,7 @@ neatify <- function(x) {
   gsub("(", "", x,fixed=TRUE)
   gsub(")", "", x)
   gsub(">", "", x)
+  gsub("-", "", x)
 }
 
 features <- data.frame(lapply(features, neatify))
@@ -66,7 +67,8 @@ y = train_dataset$Activity
 glm_model <- glm(formula = Activity ~ ., family = binomial, data = train_dataset,control = list(maxit = 100))
 
 #pred
-predictions <- predict.glm(glm_model,subset(test_dataset, select = -c(Activity)),type= "response")
+#predictions <- predict.glm(glm_model,subset(test_dataset, select = -c(Activity)),type= "response")
+predictions <- predict.glm(glm_model,test_dataset,type= "response")
 
 cv.out <- cv.glmnet(x,y,alpha=1,family="multinomial",type.measure = "mse" )
 
