@@ -126,12 +126,15 @@ abline(v=100)
 
 #Additional - find best coefficients from Lasso
 #Print coeefs
-coeff_list <- coef(cv.out,s=lambda_1se)
-cond <- sapply(coeff_list, function(x) x!= 0)
-cond
-coeff_list[cond]
-str(coeff_list)
-list.filter(coeff_list, x!=0)
-coef(cv.out, s="lambda.1se")[which(coef(cv.out, s="lambda.1se") != 0)] 
-#Print coeffs ends
+# coeff_list <- coef(cv.out,s=lambda_1se)
+# 
+# coeff_list[which(coeff_list != 0 ) ] 
+# 
+# cond <- sapply(coeff_list, function(x) x!= 0)
+# cond
+# coeff_list[cond]
+# str(coeff_list)
+# list.filter(coeff_list, x!=0)
+# coef(cv.out, s="lambda.1se")[which(coef(cv.out, s="lambda.1se") != 0)] 
+# #Print coeffs ends
 
